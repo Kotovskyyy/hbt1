@@ -1,0 +1,447 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мы точно не мошенники!</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: system-ui, sans-serif;
+    color: white;
+    background:
+        radial-gradient(ellipse at 15% 20%, #5922a855, transparent 45%),
+        radial-gradient(ellipse at 85% 80%, #007eac44, transparent 45%),
+        #090b16;
+}
+
+.card {
+    width: min(900px, 94%);
+    padding: 45px 20px 30px;
+    text-align: center;
+    border: 1px solid #ffffff20;
+    border-radius: 30px;
+    background: #ffffff08;
+    box-shadow: 0 25px 100px #0008;
+    backdrop-filter: blur(18px);
+}
+
+.badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid #55ffae55;
+    border-radius: 30px;
+    color: #72ffb9;
+    font-size: 12px;
+    letter-spacing: 2px;
+    animation: pulse 2s infinite;
+}
+
+h1 {
+    margin: 28px 0 15px;
+    font-size: clamp(36px, 7vw, 76px);
+    line-height: 1.08;
+    font-weight: 950;
+    letter-spacing: -2px;
+    background: linear-gradient(110deg, #fff, #b9a5ff, #66e8ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 25px #8264ff33);
+}
+
+.subtitle {
+    color: #a6acc4;
+    font-size: 17px;
+}
+
+.promise {
+    margin: 25px auto 0;
+    color: #7f89a8;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+/* Контейнер двух кнопок */
+.arena {
+    position: relative;
+    width: 100%;
+    height: 100px;
+    margin: 25px auto 0;
+}
+
+/* Общий стиль кнопок */
+button {
+    position: absolute;
+    top: 20px;
+    padding: 15px 22px;
+    border: 0;
+    border-radius: 14px;
+    font: inherit;
+    font-weight: 800;
+    font-size: 15px;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Кнопка согласия */
+#yes {
+    left: calc(50% - 10px);
+    transform: translateX(-100%);
+    color: #07140e;
+    background: linear-gradient(135deg, #7dffb7, #35d99b);
+    box-shadow: 0 8px 30px #35d99b30;
+    transition: box-shadow .2s, filter .2s;
+    z-index: 1;
+}
+
+#yes:hover {
+    box-shadow: 0 0 35px #35d99b77;
+    filter: brightness(1.08);
+}
+
+/* Убегающая кнопка */
+#no {
+
+    left: calc(50% + 10px);
+    top: 20px;
+    position: fixed;
+    transform: none;
+    color: white;
+    background: linear-gradient(135deg, #ff5579, #bc285c);
+    box-shadow: 0 8px 30px #ff557933;
+    z-index: 9999;
+
+    transition:
+        left .35s cubic-bezier(.2, .8, .2, 1),
+        top .35s cubic-bezier(.2, .8, .2, 1),
+        box-shadow .2s;
+
+    will-change: left, top;
+}
+
+#no:hover {
+    box-shadow: 0 0 30px #ff557977;
+}
+
+#message {
+    min-height: 30px;
+    margin-top: 5px;
+    color: #91ffc5;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.footer {
+    margin-top: 20px;
+    color: #515872;
+    font-size: 12px;
+}
+
+@keyframes pulse {
+    50% {
+        box-shadow: 0 0 20px #55ffae33;
+    }
+}
+
+@media (max-width: 500px) {
+    .card {
+        padding: 35px 12px 25px;
+    }
+
+    .subtitle {
+        font-size: 14px;
+    }
+
+    button {
+        padding: 13px 12px;
+        font-size: 13px;
+    }
+
+    h1 {
+        letter-spacing: -1px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #no {
+        transition-duration: .15s;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="card">
+    <div class="badge">✓ 100% VERIFIED TRUSTWORTHINESS</div>
+
+    <h1>МЫ ТОЧНО<br>НЕ МОШЕННИКИ!!!</h1>
+
+    <div class="subtitle">
+        Честно-честно. Можете нам доверять.
+    </div>
+
+    <div class="promise">
+        🔒 Ваши деньги в полной безопасности*<br>
+        <small>*Мы не несём ответственности за прочитанное выше.</small>
+    </div>
+
+    <div class="arena" id="arena">
+        <button id="yes">Я Вам верю ✓</button>
+        <button id="no">Я вам не верю ✕</button>
+    </div>
+
+    <div id="message" aria-live="polite"></div>
+
+    <div class="footer">
+        ООО «Абсолютно Честные Типы» © 2026
+    </div>
+</main>
+
+<script>
+const arena = document.getElementById('arena');
+const no = document.getElementById('no');
+const yes = document.getElementById('yes');
+const message = document.getElementById('message');
+
+let attempts = 0;
+let cooldown = false;
+let lastPointer = { x: 0, y: 0 };
+
+const MARGIN = 8;
+const ESCAPE_DISTANCE = 110;
+const MOVE_COOLDOWN = 380;
+
+// Удерживаем кнопку в границах видимой области окна.
+function clampPosition(x, y) {
+    const width = no.offsetWidth;
+    const height = no.offsetHeight;
+
+    const maxX = Math.max(
+        MARGIN,
+        window.innerWidth - width - MARGIN
+    );
+
+    const maxY = Math.max(
+        MARGIN,
+        window.innerHeight - height - MARGIN
+    );
+
+    return {
+        x: Math.max(MARGIN, Math.min(x, maxX)),
+        y: Math.max(MARGIN, Math.min(y, maxY))
+    };
+}
+
+// Вычисляем расстояние от курсора до центра кнопки.
+function distanceToPointer(x, y, width, height, px, py) {
+    return Math.hypot(
+        x + width / 2 - px,
+        y + height / 2 - py
+    );
+}
+
+// Плавное перемещение кнопки.
+function moveButtonAway(px, py, force = false) {
+    if (cooldown || no.style.display === 'none') return;
+
+    const rect = no.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    const currentX = rect.left;
+    const currentY = rect.top;
+
+    const distance = distanceToPointer(
+        currentX, currentY, width, height, px, py
+    );
+
+    if (!force && distance > ESCAPE_DISTANCE) return;
+
+    const maxX = Math.max(
+        MARGIN,
+        window.innerWidth - width - MARGIN
+    );
+
+    const maxY = Math.max(
+        MARGIN,
+        window.innerHeight - height - MARGIN
+    );
+
+    let bestX = currentX;
+    let bestY = currentY;
+    let bestScore = -Infinity;
+
+    // Ищем позицию подальше от курсора.
+    for (let i = 0; i < 60; i++) {
+        const x = MARGIN + Math.random() * (maxX - MARGIN);
+        const y = MARGIN + Math.random() * (maxY - MARGIN);
+
+        const pointerDistance = distanceToPointer(
+            x, y, width, height, px, py
+        );
+
+        const movement = Math.hypot(
+            x - currentX,
+            y - currentY
+        );
+
+        // Избегаем слишком коротких перемещений.
+        if (movement < 90 && maxX > 200) continue;
+
+        const score =
+            pointerDistance + Math.random() * 80;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestX = x;
+            bestY = y;
+        }
+    }
+
+    const position = clampPosition(bestX, bestY);
+
+    cooldown = true;
+
+    no.style.left = position.x + 'px';
+    no.style.top = position.y + 'px';
+
+    attempts++;
+
+    const texts = [
+        'Эй! Не надо на меня нажимать!',
+        'Подозрительно... 🤨',
+        'Кнопка отказалась сотрудничать!',
+        'Мы абсолютно честные!',
+        'ОШИБКА 404: КНОПКА НЕ НАЙДЕНА',
+        'Ваше недоверие нас огорчает!',
+        `Попытка №${attempts}. Удачи!`
+    ];
+
+    message.textContent =
+        texts[Math.floor(Math.random() * texts.length)];
+
+    setTimeout(() => {
+        cooldown = false;
+    }, MOVE_COOLDOWN);
+}
+
+// При запуске кнопка располагается непосредственно рядом с первой.
+function resetPosition() {
+    const yesRect = yes.getBoundingClientRect();
+    const noRect = no.getBoundingClientRect();
+
+    const gap = 12;
+
+    let x = yesRect.right + gap;
+    let y = yesRect.top;
+
+    // Если рядом справа не помещается — ставим слева.
+    if (x + noRect.width > window.innerWidth - MARGIN) {
+        x = yesRect.left - noRect.width - gap;
+    }
+
+    // Если места нет и слева, располагаем обе кнопки по центру.
+    if (x < MARGIN) {
+        x = (window.innerWidth - yesRect.width -
+             noRect.width - gap) / 2 + yesRect.width + gap;
+    }
+
+    const pos = clampPosition(x, y);
+
+    no.style.left = pos.x + 'px';
+    no.style.top = pos.y + 'px';
+}
+
+resetPosition();
+
+// Кнопка убегает, когда курсор приближается.
+document.addEventListener('pointermove', e => {
+    lastPointer.x = e.clientX;
+    lastPointer.y = e.clientY;
+
+    moveButtonAway(e.clientX, e.clientY);
+});
+
+// Дополнительная защита от нажатия.
+no.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    moveButtonAway(e.clientX, e.clientY, true);
+});
+
+// Нажатие на кнопку доверия.
+yes.addEventListener('click', () => {
+    document.querySelector('h1').innerHTML =
+        'МЫ ЗНАЛИ,<br>ЧТО ВЫ НАМ ВЕРИТЕ! 🎉';
+
+    message.textContent =
+        'Поздравляем! Вы официально самый доверчивый человек сегодня.';
+
+    yes.textContent = 'Доверие подтверждено ✓';
+    yes.disabled = true;
+
+    no.style.display = 'none';
+
+    document.querySelector('.badge').textContent =
+        '✓ ДОВЕРИЕ УСТАНОВЛЕНО';
+});
+
+// При изменении размера окна кнопка остаётся внутри экрана.
+window.addEventListener('resize', () => {
+    const rect = no.getBoundingClientRect();
+    const pos = clampPosition(rect.left, rect.top);
+
+    no.style.left = pos.x + 'px';
+    no.style.top = pos.y + 'px';
+	
+function keepButtonOnScreen() {
+    if (no.style.display === 'none') return;
+
+    const margin = 8;
+    const rect = no.getBoundingClientRect();
+
+    // Переводим кнопку на фиксированные экранные координаты.
+    no.style.position = 'fixed';
+    no.style.transform = 'none';
+
+    const maxX = Math.max(
+        margin,
+        window.innerWidth - rect.width - margin
+    );
+
+    const maxY = Math.max(
+        margin,
+        window.innerHeight - rect.height - margin
+    );
+
+    no.style.left =
+        Math.max(margin, Math.min(rect.left, maxX)) + 'px';
+
+    no.style.top =
+        Math.max(margin, Math.min(rect.top, maxY)) + 'px';
+}
+
+window.addEventListener('resize', keepButtonOnScreen);
+window.addEventListener('scroll', keepButtonOnScreen);
+
+// Проверяем границы после завершения анимации.
+no.addEventListener('transitionend', keepButtonOnScreen);
+
+});
+</script>
+
+</body>
+</html>
